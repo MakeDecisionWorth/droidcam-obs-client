@@ -950,7 +950,7 @@ OBSApp::OBSApp(int &argc, char **argv, profiler_name_store_t *store)
 		crashHandler_ = std::make_unique<OBS::CrashHandler>(appLaunchUUID_);
 	}
 
-	sleepInhibitor = os_inhibit_sleep_create("OBS Video/audio");
+	sleepInhibitor = nullptr;
 
 #ifndef __APPLE__
 	setWindowIcon(QIcon::fromTheme("obs", QIcon(":/res/images/obs.png")));
@@ -1364,7 +1364,11 @@ bool OBSApp::IsPortableMode()
 
 bool OBSApp::IsUpdaterDisabled()
 {
+#if DROIDCAM_OVERRIDE && defined(_WIN32)
+	return true;
+#else
 	return opt_disable_updater;
+#endif
 }
 
 bool OBSApp::IsMissingFilesCheckDisabled()
@@ -1722,50 +1726,92 @@ vector<pair<string, string>> GetLocaleNames()
 #define ALLOW_PORTABLE_MODE 0
 #endif
 
+#if DROIDCAM_OVERRIDE
+static void OverridePath(char *out, const char* name) {
+	if (!name) {
+		*out = NULL;
+		return;
+	}
+	std::string input(name);
+	std::string original = "obs-studio";
+	std::string droidcam = "droidcam-obs-client";
+	std::size_t index = input.find(original);
+	if (index != std::string::npos) {
+		input.replace(index, original.size(), droidcam);
+	}
+
+	strncpy(out, input.c_str(), 512);
+}
+#endif
+
 int GetAppConfigPath(char *path, size_t size, const char *name)
 {
+#if DROIDCAM_OVERRIDE
+	char new_name[512];
+	OverridePath(new_name, name);
+#else
+	const char *new_name = name;
+#endif
 #if ALLOW_PORTABLE_MODE
 	if (portable_mode) {
 		if (name && *name) {
-			return snprintf(path, size, CONFIG_PATH "/%s", name);
+			return snprintf(path, size, CONFIG_PATH "/%s", new_name);
 		} else {
 			return snprintf(path, size, CONFIG_PATH);
 		}
 	} else {
-		return os_get_config_path(path, size, name);
+		return os_get_config_path(path, size, new_name);
 	}
 #else
-	return os_get_config_path(path, size, name);
+	return os_get_config_path(path, size, new_name);
 #endif
 }
 
 char *GetAppConfigPathPtr(const char *name)
 {
+#if DROIDCAM_OVERRIDE
+	char new_name[512];
+	OverridePath(new_name, name);
+#else
+	const char *new_name = name;
+#endif
 #if ALLOW_PORTABLE_MODE
 	if (portable_mode) {
 		char path[512];
 
-		if (snprintf(path, sizeof(path), CONFIG_PATH "/%s", name) > 0) {
+		if (snprintf(path, sizeof(path), CONFIG_PATH "/%s", new_name) > 0) {
 			return bstrdup(path);
 		} else {
 			return NULL;
 		}
 	} else {
-		return os_get_config_path_ptr(name);
+		return os_get_config_path_ptr(new_name);
 	}
 #else
-	return os_get_config_path_ptr(name);
+	return os_get_config_path_ptr(new_name);
 #endif
 }
 
 int GetProgramDataPath(char *path, size_t size, const char *name)
 {
-	return os_get_program_data_path(path, size, name);
+#if DROIDCAM_OVERRIDE
+	char new_name[512];
+	OverridePath(new_name, name);
+#else
+	const char *new_name = name;
+#endif
+	return os_get_program_data_path(path, size, new_name);
 }
 
 char *GetProgramDataPathPtr(const char *name)
 {
-	return os_get_program_data_path_ptr(name);
+#if DROIDCAM_OVERRIDE
+	char new_name[512];
+	OverridePath(new_name, name);
+#else
+	const char *new_name = name;
+#endif
+	return os_get_program_data_path_ptr(new_name);
 }
 
 bool GetFileSafeName(const char *name, std::string &file)
