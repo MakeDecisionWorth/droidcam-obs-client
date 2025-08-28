@@ -23,6 +23,16 @@ target_compile_definitions(obs-studio PRIVATE QT_ENABLE_STRICT_MODE_UP_TO=0xFF00
 
 set_property(TARGET obs-studio APPEND PROPERTY AUTOUIC_SEARCH_PATHS forms forms/source-toolbar)
 
+if(DROIDCAM_OVERRIDE)
+    set(OBS_LOGO_FILE "images/droidcam-obs.png")
+else()
+    set(OBS_LOGO_FILE "images/obs.png")
+endif()
+
+configure_file(forms/obs.qrc.in forms/obs.qrc @ONLY)
+file(COPY forms/images DESTINATION forms)
+file(COPY forms/fonts DESTINATION forms)
+
 target_sources(
   obs-studio
   PRIVATE

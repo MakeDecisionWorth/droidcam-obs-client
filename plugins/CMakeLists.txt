@@ -31,6 +31,27 @@ macro(check_obs_websocket)
 endmacro()
 
 # Add plugins in alphabetical order to retain order in IDE projects
+if(DROIDCAM_OVERRIDE)
+add_obs_plugin(image-source)
+add_obs_plugin(obs-ffmpeg)
+
+check_obs_browser()
+
+add_obs_plugin(obs-filters)
+add_obs_plugin(obs-outputs)
+add_obs_plugin(obs-text PLATFORMS WINDOWS)
+add_obs_plugin(obs-transitions)
+add_obs_plugin(
+    obs-vst
+    PLATFORMS WINDOWS MACOS LINUX
+    WITH_MESSAGE
+)
+
+check_obs_websocket()
+
+add_obs_plugin(obs-x264)
+add_obs_plugin(droidcam-obs-virtual-output)
+else()
 add_obs_plugin(
     aja
     PLATFORMS WINDOWS MACOS LINUX
@@ -104,3 +125,4 @@ add_obs_plugin(vlc-video WITH_MESSAGE)
 add_obs_plugin(win-capture PLATFORMS WINDOWS)
 add_obs_plugin(win-dshow PLATFORMS WINDOWS)
 add_obs_plugin(win-wasapi PLATFORMS WINDOWS)
+endif()

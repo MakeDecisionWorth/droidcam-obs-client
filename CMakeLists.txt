@@ -18,6 +18,13 @@ include(helpers)
 option(ENABLE_FRONTEND "Enable building with UI (requires Qt)" ON)
 option(ENABLE_SCRIPTING "Enable scripting support" ON)
 option(ENABLE_HEVC "Enable HEVC encoders" ON)
+option(DROIDCAM_OVERRIDE "DroidCam Client overrides" OFF)
+
+if (DROIDCAM_OVERRIDE)
+  add_compile_definitions(DROIDCAM_OVERRIDE=1)
+else()
+  add_compile_definitions(DROIDCAM_OVERRIDE=0)
+endif()
 
 add_subdirectory(libobs)
 if(OS_WINDOWS)

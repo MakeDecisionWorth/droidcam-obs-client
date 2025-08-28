@@ -12,12 +12,18 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG FALSE)
 find_package(Detours REQUIRED)
 find_package(nlohmann_json 3.11 REQUIRED)
 
-configure_file(cmake/windows/obs.rc.in obs.rc)
+if(DROIDCAM_OVERRIDE)
+  configure_file(cmake/windows/droidcam-obs.rc.in obs.rc)
+else()
+  configure_file(cmake/windows/obs.rc.in obs.rc)
+endif()
 
 target_sources(
   obs-studio
   PRIVATE
-    cmake/windows/obs.manifest
+    $<IF:$<BOOL:${DROIDCAM_OVERRIDE}>,
+      cmake/windows/droidcam-obs.manifest,
+      cmake/windows/obs.manifest>
     dialogs/OBSUpdate.cpp
     dialogs/OBSUpdate.hpp
     forms/OBSUpdate.ui
@@ -71,7 +77,9 @@ endif()
 
 set_source_files_properties(utility/AutoUpdateThread.cpp PROPERTIES COMPILE_DEFINITIONS OBS_COMMIT="${OBS_COMMIT}")
 
-add_subdirectory(updater)
+if(NOT DROIDCAM_OVERRIDE)
+  add_subdirectory(updater)
+endif()
 
 set_property(TARGET obs-studio APPEND PROPERTY AUTORCC_OPTIONS --format-version 1)
 

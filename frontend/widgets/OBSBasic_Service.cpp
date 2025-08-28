@@ -19,6 +19,11 @@
 
 #include "OBSBasic.hpp"
 
+#if DROIDCAM_OVERRIDE
+void OBSBasic::SaveService() {}
+bool OBSBasic::LoadService() { return false; }
+bool OBSBasic::InitService() { return false; }
+#else
 constexpr std::string_view OBSServiceFileName = "service.json";
 
 void OBSBasic::SaveService()
@@ -110,6 +115,7 @@ bool OBSBasic::InitService()
 
 	return true;
 }
+#endif
 
 obs_service_t *OBSBasic::GetService()
 {

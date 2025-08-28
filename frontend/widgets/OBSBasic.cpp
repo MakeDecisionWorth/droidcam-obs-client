@@ -1073,9 +1073,11 @@ void OBSBasic::OBSInit()
 
 	blog(LOG_INFO, STARTUP_SEPARATOR);
 
+#if !DROIDCAM_OVERRIDE
 	if (!InitService()) {
 		throw "Failed to initialize service";
 	}
+#endif
 
 	ResetOutputs();
 	CreateHotkeys();
