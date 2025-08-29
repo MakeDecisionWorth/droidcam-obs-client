@@ -1503,6 +1503,7 @@ retryScene:
 	}
 
 	if (opt_start_virtualcam && !safe_mode) {
+		blog(LOG_INFO, "Starting virtualcam due to command line parameter");
 		QMetaObject::invokeMethod(this, "StartVirtualCam", Qt::QueuedConnection);
 		opt_start_virtualcam = false;
 	}

@@ -614,6 +614,16 @@ void SourceTree::AddGroup()
 	GetStm()->AddGroup();
 }
 
+#if DROIDCAM_OVERRIDE
+void SourceTree::UpdateNoSourcesMessage() {}
+
+void SourceTree::paintEvent(QPaintEvent *event)
+{
+	SourceTreeModel *stm = GetStm();
+	if (stm && stm->items.count())
+		QListView::paintEvent(event);
+}
+#else
 void SourceTree::UpdateNoSourcesMessage()
 {
 	QString file = !App()->IsThemeDark() ? ":res/images/no_sources.svg" : "theme:Dark/no_sources.svg";
@@ -660,3 +670,4 @@ void SourceTree::paintEvent(QPaintEvent *event)
 		QListView::paintEvent(event);
 	}
 }
+#endif

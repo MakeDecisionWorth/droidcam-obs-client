@@ -1731,6 +1731,27 @@ void OBSBasic::closeEvent(QCloseEvent *event)
 				  saveGeometry().toBase64().constData());
 	}
 
+#if DROIDCAM_OVERRIDE
+	if (event->spontaneous() && isVisible()) {
+		SetShowing(false);
+		event->ignore();
+		restart = false;
+
+		bool shown = config_get_bool(App()->GetUserConfig(), "General",
+			"CloseToTaskbarNoticeShown");
+
+		if (!shown) {
+			config_set_bool(App()->GetUserConfig(), "General",
+				"CloseToTaskbarNoticeShown", true);
+			config_save_safe(App()->GetUserConfig(), "tmp", nullptr);
+
+			SysTrayNotify(QTStr("TaskbarHint.DroidCam"),
+				QSystemTrayIcon::Information);
+		}
+		return;
+	}
+#endif
+
 	if (!isReadyToClose()) {
 		event->ignore();
 

@@ -64,6 +64,11 @@ OBSBasicControls::OBSBasicControls(OBSBasic *main) : QFrame(nullptr), ui(new Ui:
 	ui->saveReplayButton->setVisible(false);
 	ui->virtualCamButton->setVisible(false);
 	ui->virtualCamConfigButton->setVisible(false);
+#if DROIDCAM_OVERRIDE
+	ui->streamButton->setVisible(false);
+	ui->recordButton->setVisible(false);
+	ui->modeSwitch->setVisible(false);
+#endif
 
 	/* Set up state update connections */
 	connect(main, &OBSBasic::StreamingPreparing, this, &OBSBasicControls::StreamingPreparing);
@@ -281,5 +286,7 @@ void OBSBasicControls::EnableReplayBufferButtons(bool enabled)
 void OBSBasicControls::EnableVirtualCamButtons()
 {
 	ui->virtualCamButton->setVisible(true);
+#if !DROIDCAM_OVERRIDE
 	ui->virtualCamConfigButton->setVisible(true);
+#endif
 }

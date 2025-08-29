@@ -215,6 +215,10 @@ void OBSBasic::on_action_Settings_triggered()
 
 	settings_already_executing = true;
 
+#if DROIDCAM_OVERRIDE
+	StopVirtualCam();
+#endif
+
 	{
 		OBSBasicSettings settings(this);
 		settings.exec();
@@ -232,6 +236,11 @@ void OBSBasic::on_action_Settings_triggered()
 			restart = false;
 		}
 	}
+
+#if DROIDCAM_OVERRIDE
+	if (!restart)
+		StartVirtualCam();
+#endif
 }
 
 void OBSBasic::on_actionShowMacPermissions_triggered()

@@ -49,6 +49,18 @@ void OBSBasic::SystemTrayInit()
 
 	previewProjector = new QMenu(QTStr("Projector.Open.Preview"), trayMenu);
 	studioProgramProjector = new QMenu(QTStr("Projector.Open.Program"), trayMenu);
+#if DROIDCAM_OVERRIDE
+	trayIcon->setToolTip("DroidCam");
+	trayMenu->addAction(showHide);
+	trayMenu->addSeparator();
+	trayMenu->addAction(exit);
+	trayIcon->setContextMenu(trayMenu);
+	trayIcon->show();
+
+	connect(trayIcon.data(), &QSystemTrayIcon::activated, this, &OBSBasic::IconActivated);
+	connect(showHide, &QAction::triggered, this, &OBSBasic::ToggleShowHide);
+	connect(exit, &QAction::triggered, this, &OBSBasic::close);
+#else
 	OBSBasic::updateSysTrayProjectorMenu();
 
 	trayMenu->addAction(showHide);
@@ -82,6 +94,7 @@ void OBSBasic::SystemTrayInit()
 	connect(sysTrayReplayBuffer.data(), &QAction::triggered, this, &OBSBasic::ReplayBufferActionTriggered);
 	connect(sysTrayVirtualCam.data(), &QAction::triggered, this, &OBSBasic::VirtualCamActionTriggered);
 	connect(exit, &QAction::triggered, this, &OBSBasic::close);
+#endif
 }
 
 void OBSBasic::IconActivated(QSystemTrayIcon::ActivationReason reason)

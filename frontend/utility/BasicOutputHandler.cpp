@@ -224,8 +224,7 @@ const char *GetStreamOutputType(const obs_service_t *service)
 BasicOutputHandler::BasicOutputHandler(OBSBasic *main_) : main(main_)
 {
 	if (main->vcamEnabled) {
-		virtualCam = obs_output_create(VIRTUAL_CAM_ID, "virtualcam_output", nullptr, nullptr);
-
+		virtualCam = obs_output_create(VIRTUAL_CAM_ID, VIRTUAL_CAM_ID, nullptr, nullptr);
 		signal_handler_t *signal = obs_output_get_signal_handler(virtualCam);
 		startVirtualCam.Connect(signal, "start", OBSStartVirtualCam, this);
 		stopVirtualCam.Connect(signal, "stop", OBSStopVirtualCam, this);

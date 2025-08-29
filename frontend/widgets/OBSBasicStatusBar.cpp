@@ -5,6 +5,8 @@
 
 #include "moc_OBSBasicStatusBar.cpp"
 
+#include "ui-config.h"
+
 static constexpr int bitrateUpdateSeconds = 2;
 static constexpr int congestionUpdateSeconds = 4;
 static constexpr float excellentThreshold = 0.0f;
@@ -36,6 +38,17 @@ OBSBasicStatusBar::OBSBasicStatusBar(QWidget *parent)
 	statusWidget->ui->issuesFrame->hide();
 	statusWidget->ui->kbps->hide();
 
+#if DROIDCAM_OVERRIDE
+	statusWidget->ui->statusIcon->setVisible(false);
+	statusWidget->ui->streamIcon->setVisible(false);
+	statusWidget->ui->streamTime->setVisible(false);
+	statusWidget->ui->recordIcon->setVisible(false);
+	statusWidget->ui->recordTime->setVisible(false);
+	statusWidget->ui->networkFrame->hide();
+	statusWidget->ui->streamFrame->hide();
+	statusWidget->ui->recordFrame->hide();
+#endif
+
 	addPermanentWidget(statusWidget, 1);
 	setMinimumHeight(statusWidget->height());
 
@@ -51,6 +64,7 @@ OBSBasicStatusBar::OBSBasicStatusBar(QWidget *parent)
 
 void OBSBasicStatusBar::Activate()
 {
+#if !DROIDCAM_OVERRIDE
 	if (!active) {
 		refreshTimer = new QTimer(this);
 		connect(refreshTimer, &QTimer::timeout, this, &OBSBasicStatusBar::UpdateStatusBar);
@@ -84,10 +98,12 @@ void OBSBasicStatusBar::Activate()
 		statusWidget->ui->recordIcon->setPixmap(recordingActivePixmap);
 		statusWidget->ui->recordTime->setDisabled(false);
 	}
+#endif
 }
 
 void OBSBasicStatusBar::Deactivate()
 {
+#if !DROIDCAM_OVERRIDE
 	OBSBasic *main = qobject_cast<OBSBasic *>(parent());
 	if (!main) {
 		return;
@@ -130,6 +146,7 @@ void OBSBasicStatusBar::Deactivate()
 
 		statusWidget->ui->statusIcon->setPixmap(inactivePixmap);
 	}
+#endif
 }
 
 void OBSBasicStatusBar::UpdateDelayMsg()
