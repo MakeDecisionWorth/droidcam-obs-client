@@ -26,7 +26,7 @@
 #if defined(_WIN32) || defined(ENABLE_SPARKLE_UPDATER)
 #include <utility/models/branches.hpp>
 #endif
-#include <widgets/OBSBasic.hpp>
+#include <widgets/OBSBasic_DroidCamOverrides.hpp>
 
 #if !defined(_WIN32) && !defined(__APPLE__)
 #include <obs-nix-platform.h>
@@ -1332,7 +1332,11 @@ bool OBSApp::OBSInit()
 
 	thumbnailManager = new ThumbnailManager(this);
 
+#if DROIDCAM_OVERRIDE
+	mainWindow = new OBSBasicDroidCam();
+#else
 	mainWindow = new OBSBasic();
+#endif
 
 	mainWindow->setAttribute(Qt::WA_DeleteOnClose, true);
 

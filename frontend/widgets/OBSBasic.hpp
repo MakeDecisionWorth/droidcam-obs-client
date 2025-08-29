@@ -1479,6 +1479,7 @@ private slots:
 
 public:
 	void SysTrayNotify(const QString &text, QSystemTrayIcon::MessageIcon n);
+	void SysTrayNotify(const QString &title, const QString &text, QSystemTrayIcon::MessageIcon n);
 
 	void SystemTrayInit();
 	void SystemTray(bool firstStarted);

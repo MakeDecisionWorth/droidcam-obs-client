@@ -579,9 +579,9 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 		// Only allow one instance of the application
 		hSingleInstSem = CreateSemaphore(NULL, 0, 1, L"Global\\DroidCamOBSClient");
 		if (GetLastError() == ERROR_ALREADY_EXISTS) {
-			HWND hWnd = FindWindow(NULL, L"DroidCam Client");
+			HWND hWnd = FindWindowA(NULL, "DroidCam Client");
 			if (hWnd) {
-				ShowWindow(hWnd, SW_RESTORE);
+				ShowWindow(hWnd, IsIconic(hWnd) ? SW_SHOW : SW_RESTORE);
 				SetForegroundWindow(hWnd);
 			} else {
 				OBSMessageBox::warning(nullptr, "DroidCam Client",
@@ -790,9 +790,15 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 
 #ifdef _WIN32
 
+#if DROIDCAM_OVERRIDE
+#define CRASH_MESSAGE \
+	"DroidCam has crashed:(\n\n" \
+	"The crash log will still be saved to:\n%s"
+#else
 #define CRASH_MESSAGE                                                      \
 	"Woops, OBS has crashed!\n\nWould you like to copy the crash log " \
 	"to the clipboard? The crash log will still be saved to:\n\n%s"
+#endif
 
 static void main_crash_handler(const char *format, va_list args, void * /* param */)
 {
@@ -842,6 +848,9 @@ static void main_crash_handler(const char *format, va_list args, void * /* param
 
 	string finalMessage = string(message_buffer.get(), message_buffer.get() + size);
 
+#if DROIDCAM_OVERRIDE
+	MessageBoxA(NULL, finalMessage.c_str(), "Error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#else
 	int ret = MessageBoxA(NULL, finalMessage.c_str(), "OBS has crashed!", MB_YESNO | MB_ICONERROR | MB_TASKMODAL);
 
 	if (ret == IDYES) {
@@ -856,6 +865,7 @@ static void main_crash_handler(const char *format, va_list args, void * /* param
 		SetClipboardData(CF_TEXT, mem);
 		CloseClipboard();
 	}
+#endif
 
 	exit(-1);
 }

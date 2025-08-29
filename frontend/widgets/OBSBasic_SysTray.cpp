@@ -113,9 +113,20 @@ void OBSBasic::IconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void OBSBasic::SysTrayNotify(const QString &text, QSystemTrayIcon::MessageIcon n)
 {
+	const char *title =
+#if DROIDCAM_OVERRIDE
+		"DroidCam";
+#else
+		"OBS Studio";
+#endif
+	SysTrayNotify(title, text, n);
+}
+
+void OBSBasic::SysTrayNotify(const QString &title, const QString &text, QSystemTrayIcon::MessageIcon n)
+{
 	if (trayIcon && trayIcon->isVisible() && QSystemTrayIcon::supportsMessages()) {
 		QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::MessageIcon(n);
-		trayIcon->showMessage("OBS Studio", text, icon, 10000);
+		trayIcon->showMessage(title, text, icon, 10000);
 	}
 }
 
@@ -145,6 +156,10 @@ void OBSBasic::SystemTray(bool firstStarted)
 			EnableOSXDockIcon(false);
 #endif
 			opt_minimize_tray = false;
+#if DROIDCAM_OVERRIDE
+			SysTrayNotify(QTStr("TaskbarHintTitle.DroidCam"), QTStr("TaskbarHintMsg.DroidCam"),
+				QSystemTrayIcon::Information);
+#endif
 		}
 	}
 

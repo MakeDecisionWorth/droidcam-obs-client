@@ -1767,7 +1767,6 @@ void OBSBasic::closeEvent(QCloseEvent *event)
 
 #if DROIDCAM_OVERRIDE
 	if (event->spontaneous() && isVisible()) {
-		SetShowing(false);
 		event->ignore();
 		restart = false;
 
@@ -1779,9 +1778,11 @@ void OBSBasic::closeEvent(QCloseEvent *event)
 				"CloseToTaskbarNoticeShown", true);
 			config_save_safe(App()->GetUserConfig(), "tmp", nullptr);
 
-			SysTrayNotify(QTStr("TaskbarHint.DroidCam"),
+			SysTrayNotify(QTStr("TaskbarHintTitle.DroidCam"), QTStr("TaskbarHintMsg.DroidCam"),
 				QSystemTrayIcon::Information);
 		}
+
+		ToggleShowHide();
 		return;
 	}
 #endif

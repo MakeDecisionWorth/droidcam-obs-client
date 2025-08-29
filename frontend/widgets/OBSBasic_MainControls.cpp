@@ -623,10 +623,10 @@ void OBSBasic::SetShowing(bool showing)
 				dlg->show();
 			}
 		}
-
+		
 		/* Unminimize window if it was hidden to tray instead of task
 		 * bar. */
-		if (sysTrayMinimizeToTray()) {
+		if (sysTrayMinimizeToTray() || isMinimized()) {
 			Qt::WindowStates state;
 			state = windowState() & ~Qt::WindowMinimized;
 			state |= Qt::WindowActive;
