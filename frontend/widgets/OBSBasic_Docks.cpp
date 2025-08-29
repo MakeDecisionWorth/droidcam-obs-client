@@ -51,8 +51,13 @@ void OBSBasic::on_resetDocks_triggered(bool force)
 	if ((extraDocks.size() || extraCustomDocks.size()) && !force)
 #endif
 	{
+#if DROIDCAM_OVERRIDE
+		QMessageBox::StandardButton button =
+			OBSMessageBox::question(this, "DroidCam", QTStr("ResetUIWarning.Title"));
+#else
 		QMessageBox::StandardButton button =
 			OBSMessageBox::question(this, QTStr("ResetUIWarning.Title"), QTStr("ResetUIWarning.Text"));
+#endif
 
 		if (button == QMessageBox::No) {
 			return;
@@ -82,10 +87,17 @@ void OBSBasic::on_resetDocks_triggered(bool force)
 
 	bottomDocksHeight = bottomDocksHeight * 225 / 1000;
 
+#if DROIDCAM_OVERRIDE
+	ui->scenesDock->setVisible(false);
+	ui->sourcesDock->setVisible(true);
+	ui->mixerDock->setVisible(true);
+	ui->transitionsDock->setVisible(false);
+#else
 	ui->scenesDock->setVisible(true);
 	ui->sourcesDock->setVisible(true);
 	ui->mixerDock->setVisible(true);
 	ui->transitionsDock->setVisible(true);
+#endif
 	controlsDock->setVisible(true);
 	statsDock->setVisible(false);
 	statsDock->setFloating(true);

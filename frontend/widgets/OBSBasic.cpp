@@ -99,6 +99,10 @@ extern void RegisterRestreamAuth();
 #ifdef YOUTUBE_ENABLED
 extern void RegisterYoutubeAuth();
 #endif
+#if DROIDCAM_OVERRIDE
+extern void CleanMenuItems(QMenu *menu, bool recursive = false);
+extern bool reset_app;
+#endif
 
 struct QCef;
 
@@ -1164,6 +1168,34 @@ void OBSBasic::OBSInit()
 		QMetaObject::invokeMethod(this, "EnablePreviewDisplay", Qt::QueuedConnection, Q_ARG(bool, true));
 	}
 
+#if DROIDCAM_OVERRIDE
+	CleanMenuItems(ui->menu_File);
+	CleanMenuItems(ui->viewMenu);
+	CleanMenuItems(ui->menuBasic_MainMenu_Help, true);
+	//ui->menuBasic_MainMenu_Edit->menuAction()->setVisible(false);
+	ui->menuDocks->menuAction()->setVisible(false);
+	ui->menuTools->menuAction()->setVisible(false);
+	ui->profileMenu->menuAction()->setVisible(false);
+	ui->sceneCollectionMenu->menuAction()->setVisible(false);
+
+	ui->viewMenu->addSeparator();
+	ui->viewMenu->addAction(QTStr("Basic.MainMenu.View.ResetUI"), this,
+		SLOT(on_resetUI_triggered()));
+
+	QAction *reset_action = new QAction(QTStr("ResetClient"), this);
+	connect(reset_action, &QAction::triggered, this, [this]() {
+		QMessageBox::StandardButton button = QMessageBox::question(
+			this, "DroidCam", QTStr("NeedsRestart"));
+
+		if (button == QMessageBox::No)
+			return;
+
+		reset_app = true;
+		close();
+	});
+	ui->menuBasic_MainMenu_Help->insertAction(ui->actionCheckForUpdates, reset_action);
+#endif
+
 	disableSaving--;
 
 	auto addDisplay = [this](OBSQTDisplay *window) {
@@ -1326,10 +1358,12 @@ void OBSBasic::OBSInit()
 	/* ----------------------- */
 	/* Add multiview menu      */
 
+#if !DROIDCAM_OVERRIDE
 	ui->viewMenu->addSeparator();
 
 	connect(ui->viewMenu->menuAction(), &QAction::hovered, this, &OBSBasic::updateMultiviewProjectorMenu);
 	OBSBasic::updateMultiviewProjectorMenu();
+#endif
 
 	ui->sources->UpdateIcons();
 

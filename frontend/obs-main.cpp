@@ -78,6 +78,7 @@ string opt_starting_collection;
 string opt_starting_profile;
 string opt_starting_scene;
 
+bool reset_app = false;
 bool restart = false;
 bool restart_safe = false;
 static QStringList arguments;
@@ -746,6 +747,26 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 		blog(LOG_ERROR, "%s", error);
 		OBSErrorBox(nullptr, "%s", error);
 	}
+
+
+#if DROIDCAM_OVERRIDE
+	// TODO: glob the directory and clean up properly
+	if (reset_app) {
+		char path[512];
+		if (GetAppConfigPath(path, sizeof(path), "obs-studio/global.ini") > 0) {
+			blog(LOG_WARNING, "Reset Flag is set. Remove %s with (%d)",
+				path, os_unlink(path));
+			restart = true;
+		}
+
+		path[0] = 0;
+		if (GetAppConfigPath(path, sizeof(path), "obs-studio/basic/profiles/Untitled/basic.ini") > 0) {
+			blog(LOG_WARNING, "Reset Flag is set. Remove %s with (%d)",
+				path, os_unlink(path));
+			restart = true;
+		}
+	}
+#endif
 
 	if (restart || restart_safe) {
 		arguments = qApp->arguments();

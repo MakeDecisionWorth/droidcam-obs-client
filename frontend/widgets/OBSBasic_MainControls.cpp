@@ -660,10 +660,12 @@ void OBSBasic::on_actionMainRedo_triggered()
 
 void OBSBasic::on_autoConfigure_triggered()
 {
+#if !DROIDCAM_OVERRIDE
 	AutoConfig test(this);
 	test.setModal(true);
 	test.show();
 	test.exec();
+#endif
 }
 
 void OBSBasic::on_stats_triggered()
