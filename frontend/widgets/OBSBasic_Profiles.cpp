@@ -29,7 +29,11 @@
 
 // MARK: Constant Expressions
 
+#if DROIDCAM_OVERRIDE
+constexpr std::string_view OBSProfilePath = "/droidcam-obs-client/basic/profiles/";
+#else
 constexpr std::string_view OBSProfilePath = "/obs-studio/basic/profiles/";
+#endif
 constexpr std::string_view OBSProfileSettingsFile = "basic.ini";
 
 // MARK: Forward Declarations

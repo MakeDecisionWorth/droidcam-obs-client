@@ -477,7 +477,11 @@ void OBSApp::FindThemes()
 	}
 
 	{
+#if DROIDCAM_OVERRIDE
+		const std::string themeDir = App()->userConfigLocation.u8string() + "/droidcam-obs-client/themes";
+#else
 		const std::string themeDir = App()->userConfigLocation.u8string() + "/obs-studio/themes";
+#endif
 
 		QDirIterator it(QString::fromStdString(themeDir), filters, QDir::Files);
 
@@ -995,7 +999,11 @@ bool OBSApp::SetTheme(const QString &name)
 
 #ifdef _DEBUG
 	/* Write resulting QSS to file in config dir "themes" folder. */
+#if DROIDCAM_OVERRIDE
+	string filename("droidcam-obs-client/themes/");
+#else
 	string filename("obs-studio/themes/");
+#endif
 	filename += theme->id.toStdString();
 	filename += ".out";
 

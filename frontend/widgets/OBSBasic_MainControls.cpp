@@ -464,7 +464,11 @@ void OBSBasic::on_actionReleaseNotes_triggered()
 
 void OBSBasic::on_actionShowSettingsFolder_triggered()
 {
+#if DROIDCAM_OVERRIDE
+	const std::string userConfigPath = App()->userConfigLocation.u8string() + "/droidcam-obs-client";
+#else
 	const std::string userConfigPath = App()->userConfigLocation.u8string() + "/obs-studio";
+#endif
 	const QString userConfigLocation = QString::fromStdString(userConfigPath);
 
 	QDesktopServices::openUrl(QUrl::fromLocalFile(userConfigLocation));

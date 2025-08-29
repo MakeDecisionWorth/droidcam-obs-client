@@ -456,9 +456,15 @@ static bool MakeUserDirs()
 	return true;
 }
 
+#if DROIDCAM_OVERRIDE
+constexpr std::string_view OBSProfileSubDirectory = "droidcam-obs-client/basic/profiles";
+constexpr std::string_view OBSScenesSubDirectory = "droidcam-obs-client/basic/scenes";
+constexpr std::string_view OBSPluginManagerSubDirectory = "droidcam-obs-client/plugin_manager";
+#else
 constexpr std::string_view OBSProfileSubDirectory = "obs-studio/basic/profiles";
 constexpr std::string_view OBSScenesSubDirectory = "obs-studio/basic/scenes";
 constexpr std::string_view OBSPluginManagerSubDirectory = "obs-studio/plugin_manager";
+#endif
 
 static bool MakeUserProfileDirs()
 {
@@ -611,7 +617,11 @@ bool OBSApp::InitGlobalConfig()
 
 bool OBSApp::InitUserConfig(std::filesystem::path &userConfigLocation, uint32_t lastVersion)
 {
+#if DROIDCAM_OVERRIDE
+	const std::string userConfigFile = userConfigLocation.u8string() + "/droidcam-obs-client/user.ini";
+#else
 	const std::string userConfigFile = userConfigLocation.u8string() + "/obs-studio/user.ini";
+#endif
 
 	int errorCode = userConfig.Open(userConfigFile.c_str(), CONFIG_OPEN_ALWAYS);
 
@@ -671,8 +681,13 @@ void OBSApp::MigrateLegacySettings(const uint32_t lastVersion)
 	}
 }
 
+#if DROIDCAM_OVERRIDE
+static constexpr string_view OBSGlobalIniPath = "/droidcam-obs-client/global.ini";
+static constexpr string_view OBSUserIniPath = "/droidcam-obs-client/user.ini";
+#else
 static constexpr string_view OBSGlobalIniPath = "/obs-studio/global.ini";
 static constexpr string_view OBSUserIniPath = "/obs-studio/user.ini";
+#endif
 
 bool OBSApp::MigrateGlobalSettings()
 {
@@ -834,7 +849,11 @@ bool LoadBranchesFile(vector<UpdateBranch> &out)
 	string error;
 	string branchesText;
 
+#if DROIDCAM_OVERRIDE
+	BPtr<char> branchesFilePath = GetAppConfigPathPtr("droidcam-obs-client/updates/branches.json");
+#else
 	BPtr<char> branchesFilePath = GetAppConfigPathPtr("obs-studio/updates/branches.json");
+#endif
 
 	QFile branchesFile(branchesFilePath.Get());
 	if (!branchesFile.open(QIODevice::ReadOnly)) {
@@ -982,8 +1001,13 @@ static void move_basic_to_profiles(void)
 		return;
 	}
 
+#if DROIDCAM_OVERRIDE
+	const std::filesystem::path profilesPath =
+		App()->userProfilesLocation / std::filesystem::u8path("droidcam-obs-client/basic/profiles");
+#else
 	const std::filesystem::path profilesPath =
 		App()->userProfilesLocation / std::filesystem::u8path("obs-studio/basic/profiles");
+#endif
 
 	if (std::filesystem::exists(profilesPath)) {
 		return;
@@ -1046,8 +1070,13 @@ static void move_basic_to_scene_collections(void)
 		return;
 	}
 
+#if DROIDCAM_OVERRIDE
+	const std::filesystem::path sceneCollectionPath =
+		App()->userScenesLocation / std::filesystem::u8path("droidcam-obs-client/basic/scenes");
+#else
 	const std::filesystem::path sceneCollectionPath =
 		App()->userScenesLocation / std::filesystem::u8path("obs-studio/basic/scenes");
+#endif
 
 	if (std::filesystem::exists(sceneCollectionPath)) {
 		return;

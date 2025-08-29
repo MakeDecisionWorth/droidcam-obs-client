@@ -165,7 +165,11 @@ bool GetUnusedName(std::string &name)
 	return true;
 }
 
+#if DROIDCAM_OVERRIDE
+constexpr std::string_view OBSSceneCollectionPath = "droidcam-obs-client/basic/scenes/";
+#else
 constexpr std::string_view OBSSceneCollectionPath = "obs-studio/basic/scenes/";
+#endif
 
 void OBSImporter::importCollections()
 {

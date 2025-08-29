@@ -42,7 +42,11 @@ using SceneCollection = OBS::SceneCollection;
 
 // MARK: Constant Expressions
 
+#if DROIDCAM_OVERRIDE
+static constexpr std::string_view SceneCollectionPath = "/droidcam-obs-client/basic/scenes/";
+#else
 static constexpr std::string_view SceneCollectionPath = "/obs-studio/basic/scenes/";
+#endif
 
 namespace DataKeys {
 static constexpr std::string_view AbsoluteCoordinates = "AbsoluteCoordinates";

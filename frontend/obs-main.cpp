@@ -393,7 +393,11 @@ static void create_log_file(fstream &logFile)
 {
 	stringstream dst;
 
+#if DROIDCAM_OVERRIDE
+	get_last_log(false, "droidcam-obs-client/logs", lastLogFile);
+#else
 	get_last_log(false, "obs-studio/logs", lastLogFile);
+#endif
 
 	currentLogFile = GenerateTimeDateFilename("txt");
 	dst << "obs-studio/logs/" << currentLogFile.c_str();
@@ -409,7 +413,11 @@ static void create_log_file(fstream &logFile)
 #endif
 
 	if (logFile.is_open()) {
+#if DROIDCAM_OVERRIDE
+		delete_oldest_file(false, "droidcam-obs-client/logs");
+#else
 		delete_oldest_file(false, "obs-studio/logs");
+#endif
 		base_set_log_handler(do_log, &logFile);
 	} else {
 		blog(LOG_ERROR, "Failed to open log file");
@@ -451,7 +459,11 @@ static void SaveProfilerData(const ProfilerSnapshot &snap)
 
 #define LITERAL_SIZE(x) x, (sizeof(x) - 1)
 	ostringstream dst;
+#if DROIDCAM_OVERRIDE
+	dst.write(LITERAL_SIZE("droidcam-obs-client/profiler_data/"));
+#else
 	dst.write(LITERAL_SIZE("obs-studio/profiler_data/"));
+#endif
 	dst.write(currentLogFile.c_str(), pos);
 	dst.write(LITERAL_SIZE(".csv.gz"));
 #undef LITERAL_SIZE
@@ -542,7 +554,11 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 		bool created_log = false;
 
 		program.AppInit();
+#if DROIDCAM_OVERRIDE
+		delete_oldest_file(false, "droidcam-obs-client/profiler_data");
+#else
 		delete_oldest_file(false, "obs-studio/profiler_data");
+#endif
 
 		OBSTranslator translator;
 		program.installTranslator(&translator);
@@ -724,7 +740,11 @@ static void main_crash_handler(const char *format, va_list args, void * /* param
 	vsnprintf(text, MAX_CRASH_REPORT_SIZE, format, args);
 	text[MAX_CRASH_REPORT_SIZE - 1] = 0;
 
+#if DROIDCAM_OVERRIDE
+	string crashFilePath = "droidcam-obs-client/crashes";
+#else
 	string crashFilePath = "obs-studio/crashes";
+#endif
 
 	delete_oldest_file(true, crashFilePath.c_str());
 
