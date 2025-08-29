@@ -326,8 +326,7 @@ static uint64_t convert_log_name(bool has_prefix, const char *name)
 static void delete_oldest_file(bool has_prefix, const char *location)
 {
 	BPtr<char> logDir(GetAppConfigPathPtr(location));
-	string oldestLog;
-	uint64_t oldest_ts = (uint64_t)-1;
+	map<int, string> list;
 	struct os_dirent *entry;
 
 	unsigned int maxLogs = (unsigned int)config_get_uint(App()->GetAppConfig(), "General", "MaxLogs");
@@ -344,11 +343,7 @@ static void delete_oldest_file(bool has_prefix, const char *location)
 			uint64_t ts = convert_log_name(has_prefix, entry->d_name);
 
 			if (ts) {
-				if (ts < oldest_ts) {
-					oldestLog = entry->d_name;
-					oldest_ts = ts;
-				}
-
+				list[ts] = entry->d_name;
 				count++;
 			}
 		}
@@ -357,9 +352,14 @@ static void delete_oldest_file(bool has_prefix, const char *location)
 
 		if (count > maxLogs) {
 			stringstream delPath;
+			const auto end = list.size() - maxLogs;
+			count = 0;
+			for(auto const & item : list) {
+				if (count++ >= end) break;
 
-			delPath << logDir << "/" << oldestLog;
-			os_unlink(delPath.str().c_str());
+				delPath << logDir << "/" << item.second;
+				os_unlink(delPath.str().c_str());
+			}
 		}
 	}
 }
