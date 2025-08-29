@@ -81,8 +81,13 @@ void CheckIfAlreadyRunning(bool &already_running)
 	struct sockaddr_un bindInfo;
 	memset(&bindInfo, 0, sizeof(sockaddr_un));
 	bindInfo.sun_family = AF_LOCAL;
+#if DROIDCAM_OVERRIDE
 	auto bindInfoStrlen = snprintf(bindInfo.sun_path + 1, sizeof(bindInfo.sun_path) - 1, "%s %d %s",
-				       "/com/obsproject", getpid(), App()->GetVersionString().c_str());
+				       "/com/dev47apps/obsdroidcam", getpid(), App()->GetVersionString().c_str());
+#else
+	auto bindInfoStrlen = snprintf(bindInfo.sun_path + 1, sizeof(bindInfo.sun_path) - 1, "%s %d %s",
+				       "/com/obs-studio", getpid(), App()->GetVersionString().c_str());
+#endif
 
 	int bindErr = bind(uniq, (struct sockaddr *)&bindInfo, sizeof(sa_family_t) + 1 + bindInfoStrlen);
 	already_running = bindErr == 0 ? 0 : 1;
@@ -103,7 +108,11 @@ void CheckIfAlreadyRunning(bool &already_running)
 	while (getdelim(&line, &n, ' ', fp) != EOF) {
 		line[strcspn(line, "\n")] = '\0';
 		if (*line == '@') {
-			if (strstr(line, "@/com/obsproject") != NULL) {
+#if DROIDCAM_OVERRIDE
+			if (strstr(line, "@/com/dev47apps/obsdroidcam") != NULL) {
+#else
+			if (strstr(line, "@/com/obs-studio") != NULL) {
+#endif
 				++obsCnt;
 			}
 		}

@@ -501,6 +501,10 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 {
 	int ret = -1;
 
+#ifdef _WIN32
+	HANDLE hSingleInstSem = NULL;
+#endif
+
 	auto profilerNameStore = CreateNameStore();
 
 	std::unique_ptr<void, decltype(ProfilerFree)> prof_release(static_cast<void *>(&ProfilerFree), ProfilerFree);
@@ -569,6 +573,36 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 		bool cancel_launch = false;
 		bool already_running = false;
 
+#if DROIDCAM_OVERRIDE
+#if defined(_WIN32)
+		// Only allow one instance of the application
+		hSingleInstSem = CreateSemaphore(NULL, 0, 1, L"Global\\DroidCamOBSClient");
+		if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			HWND hWnd = FindWindow(NULL, L"DroidCam Client");
+			if (hWnd) {
+				ShowWindow(hWnd, SW_RESTORE);
+				SetForegroundWindow(hWnd);
+			} else {
+				OBSMessageBox::warning(nullptr, "DroidCam Client",
+					QTStr("AlreadyRunning.DroidCam"));
+			}
+
+			// exit
+			return 0;
+		}
+#elif defined(__APPLE__)
+		#error Instance Check Missing
+#elif defined(__linux__)
+		RunningInstanceCheck(already_running);
+		if (already_running) {
+			OBSMessageBox::warning(nullptr, "DroidCam Client",
+				QTStr("AlreadyRunning.DroidCam"));
+			// exit
+			return 0;
+		}
+#endif
+#else
+
 #ifdef _WIN32
 		RunOnceMutex rom =
 #endif
@@ -615,6 +649,7 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 
 		/* --------------------------------------- */
 	run:
+#endif
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__FreeBSD__)
 		// Mounted by termina during chromeOS linux container startup
@@ -721,6 +756,11 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 			arguments.removeAll("--safe-mode");
 		}
 	}
+
+#ifdef _WIN32
+	if (hSingleInstSem != NULL)
+		CloseHandle(hSingleInstSem);
+#endif
 
 	return ret;
 }
@@ -980,6 +1020,31 @@ int main(int argc, char *argv[])
 
 	obs_set_cmdline_args(argc, argv);
 
+#if DROIDCAM_OVERRIDE
+	opt_start_virtualcam = true;
+	for (int i = 1; i < argc; i++) {
+		if (arg_is(argv[i], "--portable", "-p")) {
+			portable_mode = true;
+
+		} else if (arg_is(argv[i], "--always-on-top", nullptr)) {
+			opt_always_on_top = true;
+
+		} else if (arg_is(argv[i], "--verbose", nullptr)) {
+			log_verbose = true;
+
+		} else if (arg_is(argv[i], "--minimize-to-tray", nullptr)) {
+			opt_minimize_tray = true;
+
+		} else if (arg_is(argv[i], "--help", "-h")) {
+			std::cout <<
+				"--help, -h: Get list of available commands.\n\n"
+				"--minimize-to-tray: Minimize to system tray.\n"
+				"--portable, -p: Use portable mode.\n"
+				"--verbose: Make log more verbose.\n"
+				"--always-on-top: Start in 'always on top' mode.\n\n"
+				"--version, -V: Get current version.\n";
+#else
+
 	for (int i = 1; i < argc; i++) {
 		if (arg_is(argv[i], "--multi", "-m")) {
 			multi = true;
@@ -1080,7 +1145,7 @@ int main(int argc, char *argv[])
 			std::cout << help << "--version, -V: Get current version.\n";
 #endif
 			exit(0);
-
+#endif
 		} else if (arg_is(argv[i], "--version", "-V")) {
 			std::cout << "OBS Studio - " << App()->GetVersionString(false) << "\n";
 			exit(0);
