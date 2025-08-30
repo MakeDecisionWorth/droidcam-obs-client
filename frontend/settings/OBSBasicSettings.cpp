@@ -570,7 +570,11 @@ OBSBasicSettings::OBSBasicSettings(QWidget *parent)
 	HookWidget(ui->reconnectMaxRetries,  SCROLL_CHANGED, ADV_CHANGED);
 	HookWidget(ui->processPriority,      COMBO_CHANGED,  ADV_CHANGED);
 	HookWidget(ui->confirmOnExit,        CHECK_CHANGED,  ADV_CHANGED);
+#if DROIDCAM_OVERRIDE
+	HookWidget(ui->bindToIP,             COMBO_CHANGED,  ADV_RESTART);
+#else
 	HookWidget(ui->bindToIP,             COMBO_CHANGED,  ADV_CHANGED);
+#endif
 	HookWidget(ui->ipFamily,             COMBO_CHANGED,  ADV_CHANGED);
 	HookWidget(ui->enableNewSocketLoop,  CHECK_CHANGED,  ADV_CHANGED);
 	HookWidget(ui->enableLowLatencyMode, CHECK_CHANGED,  ADV_CHANGED);
@@ -916,6 +920,69 @@ OBSBasicSettings::OBSBasicSettings(QWidget *parent)
 	sampleRateIndex = ui->sampleRate->currentIndex();
 	llBufferingEnabled = ui->lowLatencyBuffering->isChecked();
 
+#ifdef DROIDCAM_OVERRIDE
+	ui->listWidget->setRowHidden(2, true); // Stream
+	ui->listWidget->setRowHidden(3, true); // Output
+	ui->listWidget->setRowHidden(6, true); // Hotkeys
+	#define HIDE_ITEM(item) \
+		if (item) item->setVisible(false)
+
+	// General
+	HIDE_ITEM(ui->enableAutoUpdates);
+	HIDE_ITEM(ui->openStatsOnStartup);
+	HIDE_ITEM(ui->systemTrayEnabled);
+	HIDE_ITEM(ui->groupBoxMultiview);
+
+	ui->groupBox_11->setVisible(false); // "Studio Mode"
+	ui->groupBox_16->setVisible(false); // "Output"
+	ui->groupBox_19->setVisible(false); // "Importers"
+	ui->verticalLayout_20->addItem(new QSpacerItem(20, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+	// Audio
+	HIDE_ITEM(ui->audioDevicesGroupBox);
+	HIDE_ITEM(ui->audioHotkeysGroupBox);
+	HIDE_ITEM(ui->label_15); // Channels
+	HIDE_ITEM(ui->channelSetup);
+
+	// Video
+	HookWidget(ui->baseResolution, COMBO_CHANGED, VIDEO_CHANGED);
+	ui->baseResolution->setEditable(false);
+	HIDE_ITEM(ui->outputResLabel);
+	HIDE_ITEM(ui->outputResolution);
+	HIDE_ITEM(ui->scaledAspect);
+	HIDE_ITEM(ui->baseAspect);
+	HIDE_ITEM(ui->label_11); // DownscaleFilter Label
+	HIDE_ITEM(ui->downscaleFilter);
+
+	QHBoxLayout *stack = new QHBoxLayout();
+	stack->addWidget(ui->fpsCommon);
+	ui->fpsType->setVisible(false);
+	ui->fpsTypes->setVisible(false);
+	ui->formLayout_15->insertRow(3, new QLabel(QTStr("Basic.Settings.Video.FPS"), this), stack);
+
+	// Advanced
+	HIDE_ITEM(ui->label_30); // video color formats
+	HIDE_ITEM(ui->label_33);
+	HIDE_ITEM(ui->label_34);
+	HIDE_ITEM(ui->label_sdrWhiteLevel);
+	HIDE_ITEM(ui->label_hdrNominalPeakLevel);
+	HIDE_ITEM(ui->colorSpace);
+	HIDE_ITEM(ui->colorRange);
+	HIDE_ITEM(ui->colorFormat);
+	HIDE_ITEM(ui->sdrWhiteLevel);
+	HIDE_ITEM(ui->hdrNominalPeakLevel);
+	ui->formLayout_14->setRowVisible(6, false); // horizontalSpacer_12
+
+	HIDE_ITEM(ui->groupBox_6); // Adv Recording
+	HIDE_ITEM(ui->groupBox_5); // Adv Stream
+	HIDE_ITEM(ui->groupBox_7); // Auto reconnect
+	HIDE_ITEM(ui->dynBitrate);
+	HIDE_ITEM(ui->enableNewSocketLoop);
+	HIDE_ITEM(ui->enableLowLatencyMode);
+	ui->verticalLayout_24->addItem(new QSpacerItem(20, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+	#undef HIDE_ITEM
+#else
+
 	QRegularExpression rx("\\d{1,5}x\\d{1,5}");
 	QValidator *validator = new QRegularExpressionValidator(rx, this);
 	ui->baseResolution->lineEdit()->setValidator(validator);
@@ -923,6 +990,7 @@ OBSBasicSettings::OBSBasicSettings(QWidget *parent)
 	ui->advOutRescale->lineEdit()->setValidator(validator);
 	ui->advOutRecRescale->lineEdit()->setValidator(validator);
 	ui->advOutFFRescale->lineEdit()->setValidator(validator);
+#endif
 
 	connect(ui->useStreamKeyAdv, &QCheckBox::clicked, this, &OBSBasicSettings::UseStreamKeyAdvClicked);
 
@@ -1634,6 +1702,25 @@ void OBSBasicSettings::LoadResolutionLists()
 
 	ui->baseResolution->clear();
 
+#if DROIDCAM_OVERRIDE
+	auto addRes = [this, cx, cy](uint32_t x, uint32_t y) {
+		QString res = ResString(x, y).c_str();
+		if (ui->baseResolution->findText(res) >= 0)
+			return;
+
+		ui->baseResolution->addItem(res);
+		if (cx == x && cy == y)
+			ui->baseResolution->setCurrentIndex(
+				ui->baseResolution->count() - 1);
+	};
+
+	addRes(640, 480);
+	addRes(1280, 720);
+	addRes(1920, 1080);
+
+	ui->outputResolution->setCurrentText(ResString(out_cx, out_cy).c_str());
+
+#else
 	auto addRes = [this](int cx, int cy) {
 		QString res = ResString(cx, cy).c_str();
 		if (ui->baseResolution->findText(res) == -1) {
@@ -1669,6 +1756,7 @@ void OBSBasicSettings::LoadResolutionLists()
 		ui->outputResolution->lineEdit()->setText(outputResString.c_str());
 	}
 
+#endif
 	std::tuple<int, int> aspect = aspect_ratio(cx, cy);
 
 	ui->baseAspect->setText(
@@ -1677,11 +1765,25 @@ void OBSBasicSettings::LoadResolutionLists()
 
 static inline void LoadFPSCommon(OBSBasic *main, Ui::OBSBasicSettings *ui)
 {
+#if DROIDCAM_OVERRIDE
+	ui->fpsCommon->clear();
+	ui->fpsCommon->addItem("24");
+	ui->fpsCommon->addItem("25");
+	ui->fpsCommon->addItem("30");
+	ui->fpsCommon->addItem("48");
+	ui->fpsCommon->addItem("50");
+	ui->fpsCommon->addItem("60");
+#endif
+
 	const char *val = config_get_string(main->Config(), "Video", "FPSCommon");
 
 	int idx = ui->fpsCommon->findText(val);
 	if (idx == -1) {
+#if DROIDCAM_OVERRIDE
+		idx = 2;
+#else
 		idx = 4;
+#endif
 	}
 	ui->fpsCommon->setCurrentIndex(idx);
 }
@@ -3010,12 +3112,14 @@ void OBSBasicSettings::LoadSettings(bool changedOnly)
 	if (!changedOnly || generalChanged) {
 		LoadGeneralSettings();
 	}
+#if !DROIDCAM_OVERRIDE
 	if (!changedOnly || stream1Changed) {
 		LoadStream1Settings();
 	}
 	if (!changedOnly || outputsChanged) {
 		LoadOutputSettings();
 	}
+#endif
 	if (!changedOnly || audioChanged) {
 		LoadAudioSettings();
 	}
@@ -3247,9 +3351,11 @@ void OBSBasicSettings::SaveVideoSettings()
 	if (WidgetChanged(ui->baseResolution) && ConvertResText(QT_TO_UTF8(baseResolution), cx, cy)) {
 		config_set_uint(main->Config(), "Video", "BaseCX", cx);
 		config_set_uint(main->Config(), "Video", "BaseCY", cy);
+#if !DROIDCAM_OVERRIDE
 	}
 
 	if (WidgetChanged(ui->outputResolution) && ConvertResText(QT_TO_UTF8(outputResolution), cx, cy)) {
+#endif
 		config_set_uint(main->Config(), "Video", "OutputCX", cx);
 		config_set_uint(main->Config(), "Video", "OutputCY", cy);
 	}
@@ -3916,9 +4022,11 @@ bool OBSBasicSettings::QueryAllowedToClose()
 	}
 
 	if (invalidEncoder) {
+#if !DROIDCAM_OVERRIDE
 		OBSMessageBox::warning(this, QTStr("CodecCompat.CodecMissingOnExit.Title"),
 				       QTStr("CodecCompat.CodecMissingOnExit.Text"));
 		return false;
+#endif
 	} else if (invalidFormat) {
 		OBSMessageBox::warning(this, QTStr("CodecCompat.ContainerMissingOnExit.Title"),
 				       QTStr("CodecCompat.ContainerMissingOnExit.Text"));
@@ -5838,16 +5946,22 @@ void OBSBasicSettings::RecreateOutputResolutionWidget()
 
 void OBSBasicSettings::UpdateAdvNetworkGroup()
 {
+#if DROIDCAM_OVERRIDE
+	bool enabled = true;
+#else
 	bool enabled = protocol.contains("RTMP");
+#endif
 
 	ui->advNetworkDisabled->setVisible(!enabled);
 
 	ui->bindToIPLabel->setVisible(enabled);
 	ui->bindToIP->setVisible(enabled);
+#if !DROIDCAM_OVERRIDE
 	ui->dynBitrate->setVisible(enabled);
+#endif
 	ui->ipFamilyLabel->setVisible(enabled);
 	ui->ipFamily->setVisible(enabled);
-#ifdef _WIN32
+#if defined(_WIN32) && !DROIDCAM_OVERRIDE
 	ui->enableNewSocketLoop->setVisible(enabled);
 	ui->enableLowLatencyMode->setVisible(enabled);
 #endif

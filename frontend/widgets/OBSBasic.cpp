@@ -753,7 +753,11 @@ bool OBSBasic::InitBasicConfigDefaults()
 
 	config_set_default_string(activeConfiguration, "Output", "Mode", "Simple");
 
+#if DROIDCAM_OVERRIDE
+	config_set_default_bool(activeConfiguration, "Stream1", "IgnoreRecommended", true);
+#else
 	config_set_default_bool(activeConfiguration, "Stream1", "IgnoreRecommended", false);
+#endif
 	config_set_default_bool(activeConfiguration, "Stream1", "EnableMultitrackVideo", false);
 	config_set_default_bool(activeConfiguration, "Stream1", "MultitrackVideoMaximumAggregateBitrateAuto", true);
 	config_set_default_bool(activeConfiguration, "Stream1", "MultitrackVideoMaximumVideoTracksAuto", true);
@@ -885,6 +889,13 @@ bool OBSBasic::InitBasicConfigDefaults()
 	config_set_default_uint(activeConfiguration, "Audio", "PeakMeterType", 0);
 
 	CheckExistingCookieId();
+
+#if DROIDCAM_OVERRIDE
+	config_set_default_string(activeConfiguration, "Video", "ColorFormat", "I420");
+	config_set_default_string(activeConfiguration, "Video", "ScaleType", "bilinear");
+	config_set_default_string(activeConfiguration, "Video", "ColorRange", "Full");
+	config_set_default_uint(activeConfiguration, "Audio", "SampleRate", 44100);
+#endif
 
 	return true;
 }
@@ -1185,7 +1196,7 @@ void OBSBasic::OBSInit()
 	QAction *reset_action = new QAction(QTStr("ResetClient"), this);
 	connect(reset_action, &QAction::triggered, this, [this]() {
 		QMessageBox::StandardButton button = QMessageBox::question(
-			this, "DroidCam", QTStr("NeedsRestart"));
+			this, "DroidCam", QTStr("NeedsRestart.DroidCam"));
 
 		if (button == QMessageBox::No)
 			return;
@@ -1878,21 +1889,36 @@ void OBSBasic::GetFPSCommon(uint32_t &num, uint32_t &den) const
 	} else if (strcmp(val, "20") == 0) {
 		num = 20;
 		den = 1;
+#if DROIDCAM_OVERRIDE
+	} else if (strcmp(val, "24") == 0) {
+		num = 24;
+		den = 1001;
+	} else if (strcmp(val, "25") == 0) {
+		num = 25;
+		den = 1;
+#else
 	} else if (strcmp(val, "24 NTSC") == 0) {
 		num = 24000;
 		den = 1001;
 	} else if (strcmp(val, "25 PAL") == 0) {
 		num = 25;
 		den = 1;
+#endif
 	} else if (strcmp(val, "29.97") == 0) {
 		num = 30000;
 		den = 1001;
 	} else if (strcmp(val, "48") == 0) {
 		num = 48;
 		den = 1;
+#if DROIDCAM_OVERRIDE
+	} else if (strcmp(val, "50") == 0) {
+		num = 50;
+		den = 1;
+#else
 	} else if (strcmp(val, "50 PAL") == 0) {
 		num = 50;
 		den = 1;
+#endif
 	} else if (strcmp(val, "59.94") == 0) {
 		num = 60000;
 		den = 1001;

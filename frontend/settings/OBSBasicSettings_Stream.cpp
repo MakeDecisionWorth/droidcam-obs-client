@@ -47,6 +47,7 @@ inline bool OBSBasicSettings::IsWHIP() const
 	return ui->service->currentData().toInt() == (int)ListOpt::WHIP;
 }
 
+#if !DROIDCAM_OVERRIDE
 void OBSBasicSettings::InitStreamPage()
 {
 	ui->connectAccount2->setVisible(false);
@@ -243,6 +244,7 @@ void OBSBasicSettings::LoadStream1Settings()
 
 	QMetaObject::invokeMethod(this, "UpdateResFPSLimits", Qt::QueuedConnection);
 }
+#endif
 
 #define SRT_PROTOCOL "srt"
 #define RIST_PROTOCOL "rist"
@@ -264,6 +266,7 @@ void OBSBasicSettings::SwapMultiTrack(const char *protocol)
 	}
 }
 
+#if !DROIDCAM_OVERRIDE
 void OBSBasicSettings::SaveStream1Settings()
 {
 	bool customServer = IsCustomService();
@@ -511,6 +514,7 @@ void OBSBasicSettings::LoadServices(bool showAll)
 
 	ui->service->blockSignals(false);
 }
+#endif
 
 static inline bool is_auth_service(const std::string &service)
 {
@@ -567,6 +571,7 @@ static void get_yt_ch_title(Ui::OBSBasicSettings *ui)
 }
 #endif
 
+#if !DROIDCAM_OVERRIDE
 void OBSBasicSettings::UseStreamKeyAdvClicked()
 {
 	ui->streamKeyWidget->setVisible(true);
@@ -614,6 +619,7 @@ void OBSBasicSettings::on_service_currentIndexChanged(int idx)
 		ui->whipSimulcastGroupBox->hide();
 	}
 }
+#endif
 
 void OBSBasicSettings::on_customServer_textChanged(const QString &)
 {
@@ -723,6 +729,7 @@ QString OBSBasicSettings::FindProtocol()
 	return QString("RTMP");
 }
 
+#if !DROIDCAM_OVERRIDE
 void OBSBasicSettings::UpdateServerList()
 {
 	QString serviceName = ui->service->currentText();
@@ -951,6 +958,7 @@ void OBSBasicSettings::on_useAuth_toggled()
 	ui->authPwLabel->setVisible(use_auth);
 	ui->authPwWidget->setVisible(use_auth);
 }
+#endif
 
 bool OBSBasicSettings::IsCustomServer()
 {
@@ -965,6 +973,7 @@ void OBSBasicSettings::on_server_currentIndexChanged(int /*index*/)
 	ui->serviceCustomServer->setVisible(server_is_custom);
 }
 
+#if !DROIDCAM_OVERRIDE
 void OBSBasicSettings::UpdateVodTrackSetting()
 {
 	bool enableForCustomServer = config_get_bool(App()->GetUserConfig(), "General", "EnableCustomServerVodTrack");
@@ -1191,6 +1200,7 @@ bool OBSBasicSettings::ResFPSValid(obs_service_resolution *res_list, size_t res_
 
 	return true;
 }
+#endif
 
 extern void set_closest_res(int &cx, int &cy, struct obs_service_resolution *res_list, size_t count);
 
@@ -1211,6 +1221,7 @@ extern void set_closest_res(int &cx, int &cy, struct obs_service_resolution *res
  * which as of this writing, and hopefully for the foreseeable future, there is
  * only one.
  */
+#if !DROIDCAM_OVERRIDE
 bool OBSBasicSettings::UpdateResFPSLimits()
 {
 	if (loading) {
@@ -1404,6 +1415,7 @@ bool OBSBasicSettings::UpdateResFPSLimits()
 
 	return true;
 }
+#endif
 
 static bool service_supports_codec(const char **codecs, const char *codec)
 {

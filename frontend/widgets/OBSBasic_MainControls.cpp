@@ -228,7 +228,11 @@ void OBSBasic::on_action_Settings_triggered()
 
 	if (restart) {
 		QMessageBox::StandardButton button =
+#if DROIDCAM_OVERRIDE
+			OBSMessageBox::question(this, QTStr("Restart"), QTStr("NeedsRestart.DroidCam"));
+#else
 			OBSMessageBox::question(this, QTStr("Restart"), QTStr("NeedsRestart"));
+#endif
 
 		if (button == QMessageBox::Yes) {
 			close();
